@@ -1,0 +1,16 @@
+For Direct (Type) Property Generator
+\begin{verbatim}
+select ?p  where {dbr:X rdf:type ?p.}
+---------------------------------------------------------------------------------------------------------
+For Relation Incoming or Outgoing Property Generator
+select ?p ?o  where {dbr:X  ?p ?o.
+?o ?p dbr:X. OPTIONAL {dbr:X rdf:type ?o.}}
+---------------------------------------------------------------------------------------------------------
+For Specefic1Hop Property Generator
+Select distinct ?Cat1  WHERE
+{dbr:X dcterms:subject ?Specefic1Hop.}
+----------------------------------------------------------------------------------------------------------
+For Specefic2Hop Property Generator
+Select distinct ?Specefic2Hop WHERE
+{dbr:X dcterms:subject ?Specefic1Hop.
+?Specefic1Hop skos:broader ?Specefic2Hop.}
