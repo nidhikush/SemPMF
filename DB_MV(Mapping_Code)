@@ -1,0 +1,244 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+class LevenUP {
+
+	static final int MAX_MATCH_FILTER = 2;
+	static final int EDIT_DIST_THESHHOLD = 7;
+
+	public static void main(String args[]) throws FileNotFoundException,
+			IOException {
+		// movie name form db file
+		String db;
+		// movie name form mv file
+		String mv;
+		int length;
+
+		BufferedReader dbreader = new BufferedReader(new FileReader(
+				"\\DB_MV1M\\DB.txt"));
+		HashMap<ArrayList<String>, Integer> map = new HashMap<ArrayList<String>, Integer>();
+		ArrayList<String> pair = null;
+
+		// final results
+		BufferedWriter result = new BufferedWriter(new FileWriter(
+				"\\DB_MV1M\\LookUP_MovieLens1M.txt"));
+		// filter one
+		BufferedWriter f_ONE_Writer = new BufferedWriter(new FileWriter(
+				"DB_MV1M\\LookUP_FILTER-101.txt"));
+		// filter TWo
+		BufferedWriter f_TWO_Writer = new BufferedWriter(new FileWriter(
+				"DB_MV1M\\LookUP_FILTER-102.txt"));
+		// filter tree
+		BufferedWriter f_Three_Writer = new BufferedWriter(new FileWriter(
+				"DB_MV1M\\LookUP_FILTER-103.txt"));
+		BufferedWriter f_Four_Writer = new BufferedWriter(new FileWriter(
+				"DB_MV1M\\LookUP_FILTER-104.txt"));
+		// filter TWo
+		BufferedReader urlreader = new BufferedReader(new FileReader(
+				"DB_MV1M\\Org_DB_withID.txt"));
+		String urlid;
+
+		HashMap<Integer, String> urlidmap = new HashMap<Integer, String>();
+		while ((urlid = urlreader.readLine()) != null) {
+			String[] urlidstr = urlid.split("\\s+");
+			urlidmap.put(Integer.parseInt(urlidstr[0]), urlidstr[1]);
+		}
+
+		while ((db = dbreader.readLine()) != null) {
+			BufferedReader moviereader = new BufferedReader(new FileReader(
+					"\\DB_MV1M\\MV.txt"));
+
+			String[] stringidmv = db.split("\\s+");
+
+			String mvid = stringidmv[0];
+			String matchmv = stringidmv[1];
+
+			while ((mv = moviereader.readLine()) != null) {
+				pair = new ArrayList<String>();
+				String idname[] = mv.split("\\s+");
+				pair.add(idname[0]);
+				pair.add(idname[1]);
+				// System.out.println(pair);
+				length = minDistance(matchmv, idname[1]);
+				map.put(pair, length);
+			}
+			// System.out.println(map);
+			HashMap<ArrayList<String>, Integer> sotedMap = sortByValues(map);
+			result.write(urlidmap.get(new Integer(mvid)));
+			result.write(" ");
+
+			Set<ArrayList<String>> set = sotedMap.keySet();
+			Iterator<ArrayList<String>> itr = set.iterator();
+
+			Iterator<Integer> values = sotedMap.values().iterator();
+
+			LinkedHashMap<String, String> zeromacthes = new LinkedHashMap<String, String>();
+			LinkedHashMap<String, String> threshholdmatch = new LinkedHashMap<String, String>();
+			LinkedHashMap<String, String> notmatch = new LinkedHashMap<String, String>();
+
+			int zeroeditcount = 0;
+			int thesh_hold_count = 0;
+
+			while (itr.hasNext() && values.hasNext()) {
+				ArrayList<String> newpair = (ArrayList<String>) itr.next();
+				result.write("::");
+				result.write(newpair.get(0));
+				result.write("::");
+				result.write(newpair.get(1));
+
+				int val = values.next();
+				if (val == 0) {
+					zeromacthes.put(newpair.get(0), newpair.get(1));
+					zeroeditcount++;
+				} else if (val <= EDIT_DIST_THESHHOLD) {
+					threshholdmatch.put(newpair.get(0), newpair.get(1));
+					thesh_hold_count++;
+				} else {
+					notmatch.put(newpair.get(0), newpair.get(1));
+				}
+
+			}
+			if (zeroeditcount == 1) {
+				f_TWO_Writer.write(urlidmap.get(new Integer(mvid)));
+				f_TWO_Writer.write(" ");
+				Iterator<String> keys = zeromacthes.keySet().iterator();
+				while (keys.hasNext()) {
+					f_TWO_Writer.write("::");
+					String key = keys.next();
+					String valString = zeromacthes.get(key);
+					f_TWO_Writer.write(key);
+					f_TWO_Writer.write("::");
+					f_TWO_Writer.write(valString);
+				}
+				f_TWO_Writer.write("\n");
+			} else if (zeroeditcount >= MAX_MATCH_FILTER) {
+			
+				f_ONE_Writer.write(urlidmap.get(new Integer(mvid)));
+				f_ONE_Writer.write(" ");
+				Iterator<String> keys = zeromacthes.keySet().iterator();
+				while (keys.hasNext()) {
+					f_ONE_Writer.write("::");
+					String key = keys.next();
+					String valString = zeromacthes.get(key);
+					f_ONE_Writer.write(key);
+					f_ONE_Writer.write("::");
+					f_ONE_Writer.write(valString);
+				}
+				f_ONE_Writer.write("\n");
+
+			} else if (thesh_hold_count >= 1) {
+				f_Three_Writer.write(urlidmap.get(new Integer(mvid)));
+				f_Three_Writer.write(" ");
+				Iterator<String> keys = threshholdmatch.keySet().iterator();
+				while (keys.hasNext()) {
+					f_Three_Writer.write("::");
+					String key = keys.next();
+					String valString = threshholdmatch.get(key);
+					f_Three_Writer.write(key);
+					f_Three_Writer.write("::");
+					f_Three_Writer.write(valString);
+				}
+				f_Three_Writer.write("\n");
+			} else {
+				f_Four_Writer.write(urlidmap.get(new Integer(mvid)));
+				f_Four_Writer.write(" ");
+				Iterator<String> keys = notmatch.keySet().iterator();
+				while (keys.hasNext()) {
+					f_Four_Writer.write("::");
+					String key = keys.next();
+					String valString = notmatch.get(key);
+					f_Four_Writer.write(key);
+					f_Four_Writer.write("::");
+					f_Four_Writer.write(valString);
+				}
+				f_Four_Writer.write("\n");
+			}
+
+			result.write("\n");
+			map.clear();
+		}
+		result.close();
+		f_ONE_Writer.close();
+		f_TWO_Writer.close();
+		f_Three_Writer.close();
+		f_Four_Writer.close();
+		System.out.println("Finish");
+	}
+
+	void processFileterFiles() {
+
+	}
+
+	private static HashMap sortByValues(HashMap map) {
+		List<Integer> list = new LinkedList<Integer>(map.entrySet());
+		// Defined Custom Comparator here
+		Collections.sort(list, new Comparator() {
+			public int compare(Object o1, Object o2) {
+				return ((Comparable) ((Map.Entry) (o1)).getValue())
+						.compareTo(((Map.Entry) (o2)).getValue());
+			}
+		});
+
+		// Here I am copying the sorted list in HashMap
+		// using LinkedHashMap to preserve the insertion order
+		HashMap sortedHashMap = new LinkedHashMap();
+		for (Iterator it = list.iterator(); it.hasNext();) {
+			Map.Entry entry = (Map.Entry) it.next();
+			sortedHashMap.put(entry.getKey(), entry.getValue());
+		}
+		return sortedHashMap;
+	}
+
+	public static int minDistance(String word1, String word2) {
+		int len1 = word1.length();
+		int len2 = word2.length();
+		// len1+1, len2+1, because finally return dp[len1][len2]
+		int[][] dp = new int[len1 + 1][len2 + 1];
+
+		for (int i = 0; i <= len1; i++) {
+			dp[i][0] = i;
+		}
+
+		for (int j = 0; j <= len2; j++) {
+			dp[0][j] = j;
+		}
+
+		// iterate though, and check last char
+		for (int i = 0; i < len1; i++) {
+			char c1 = word1.charAt(i);
+			for (int j = 0; j < len2; j++) {
+				char c2 = word2.charAt(j);
+
+				// if last two chars equal
+				if (c1 == c2) {
+					// update dp value for +1 length
+					dp[i + 1][j + 1] = dp[i][j];
+				} else {
+					int replace = dp[i][j] + 1;
+					int insert = dp[i][j + 1] + 1;
+					int delete = dp[i + 1][j] + 1;
+
+					int min = replace > insert ? insert : replace;
+					min = delete > min ? min : delete;
+					dp[i + 1][j + 1] = min;
+				}
+			}
+		}
+
+		return dp[len1][len2];
+	}
+}
