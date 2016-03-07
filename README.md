@@ -14,3 +14,5 @@ file. Two files DB.txt and Org_DB_withID.txt have been used intially and then ma
 "SPARQL_Queries" file.
 
 4. code for generation of Item-Property files are given in "Matrix.zip" folder.
+
+5. Modification in SemPMF code is in progress and will be available soon.
