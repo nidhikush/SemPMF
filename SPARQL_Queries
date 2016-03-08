@@ -1,5 +1,4 @@
 For Direct (Type) Property Generator
-\begin{verbatim}
 select ?p  where {dbr:X rdf:type ?p.}
 ---------------------------------------------------------------------------------------------------------
 For Relation Incoming or Outgoing Property Generator
