@@ -1,7 +1,7 @@
 # SemPMF
 Implementation of the corrected mapping of DBpedia and MovieLens1M used in the paper 
-"SemPMF: Semantic Inclusion by Probabilistic Matrix Factorization for Recommender System"
-accepted for publication in PAAMS 2016 (http://www.paams.net/submission)
+Nidhi Kushwaha, Xudong Sun, O P Vyas, Artus Krohn-Grimberghe (2016): "SemPMF: Semantic Inclusion by Probabilistic Matrix Factorization for Recommender System," accepted for publication in Web Mining and Recommender systems (WebMiReS) at PAAMS 2016.
+(http://www.paams.net/submission)
 
 1. DB_MV(Mapping_code) has Java code for finding the corrected mapping.
 Beside this automated code, We have also done manual check for it. The corrected reasons after manual check is given in "Correction_Reasons" 
